@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Scrape Result</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Sora:wght@600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body class="app-body">
+  <main class="page-shell">
+    <div class="page-head">
+      <a class="back-link" href="/"><i class="bi bi-arrow-left"></i> Back to Home</a>
+    </div>
+
+    <section class="hero">
+      <h1>Scrape Result</h1>
+      <p>Ringkasan hasil pencarian username pada platform {{ platform }}.</p>
+    </section>
+
+    {% if found_usernames %}
+      {% set found_count = found_usernames.values() | select | list | length %}
+      {% set total_count = found_usernames|length %}
+
+      <div class="stats-bar">
+        <div class="stats-pill">Platform: {{ platform }}</div>
+        <div class="stats-pill">Total Target: {{ total_count }}</div>
+        <div class="stats-pill">Found: {{ found_count }}</div>
+        <div class="stats-pill">Not Found: {{ total_count - found_count }}</div>
+      </div>
+
+      <section class="glass-card">
+        <h5 class="mb-3">Search Results</h5>
+        <ul class="list-group list-group-flush results-list">
+          {% for username, found in found_usernames.items() %}
+            <li class="list-group-item bg-transparent">
+              <div class="d-flex justify-content-between align-items-start flex-wrap gap-2">
+                <strong>{{ username }}</strong>
+                <span class="badge {{ 'bg-success' if found else 'bg-danger' }}">{{ 'Found' if found else 'Not Found' }}</span>
+              </div>
+
+              {% if found and screenshot_paths.get(username) %}
+                <img src="{{ screenshot_paths[username] }}"
+                     alt="Screenshot for {{ username }}"
+                     class="img-fluid mt-3 screenshot-thumb"
+                     data-bs-toggle="modal"
+                     data-bs-target="#imageModal"
+                     onclick="setModalImage('{{ screenshot_paths[username] }}')">
+              {% endif %}
+            </li>
+          {% endfor %}
+        </ul>
+      </section>
+    {% else %}
+      <div class="glass-card">
+        <div class="alert alert-warning text-center mb-0">
+          No search results were found for the given usernames.
+        </div>
+      </div>
+    {% endif %}
+
+    <div class="text-center mt-4">
+      <a href="/" class="btn btn-secondary">Back to Home</a>
+    </div>
+  </main>
+
+  <div class="modal fade" id="imageModal" tabindex="-1" aria-labelledby="imageModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-xl">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="imageModalLabel">Image Preview</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body text-center">
+          <div class="d-flex justify-content-center align-items-center" style="min-height: 55vh; overflow: hidden;">
+            <img id="modalImage" src="" alt="Zoomed Image" class="img-fluid">
+          </div>
+          <input type="range" id="zoomSlider" class="form-range mt-2" min="1" max="3" step="0.1" value="1">
+        </div>
+      </div>
+    </div>
+  </div>
+
+<script>
+    let currentModalScale = 1;
+    const clickZoomLevels = [1, 1.5, 2, 2.5, 3];
+
+    let isPanning = false;
+    let panStartX, panStartY;
+    let currentTranslateX = 0;
+    let currentTranslateY = 0;
+    let didPan = false; // Flag to distinguish pan from click for zoom
+    let initialPanMouseX, initialPanMouseY; // For didPan threshold check
+
+    const modalImageElement = document.getElementById('modalImage');
+    const zoomSliderElement = document.getElementById('zoomSlider');
+    const imageZoomWrapper = document.querySelector('#imageModal .modal-body');
+
+    function applyImageTransform() {
+        if (modalImageElement) {
+            if (currentModalScale <= 1) { // Reset translation if not zoomed
+                currentTranslateX = 0;
+                currentTranslateY = 0;
+            }
+            modalImageElement.style.transform = `translate(${currentTranslateX}px, ${currentTranslateY}px) scale(${currentModalScale})`;
+        }
+    }
+
+    function updateCursor() {
+        if (modalImageElement) {
+            if (isPanning) {
+                modalImageElement.style.cursor = 'grabbing';
+            } else if (currentModalScale > 1) {
+                modalImageElement.style.cursor = 'grab';
+            } else {
+                modalImageElement.style.cursor = 'pointer'; // For click-to-zoom
+            }
+        }
+    }
+    
+    function resetPanAndScale() {
+        currentModalScale = clickZoomLevels[0];
+        currentTranslateX = 0;
+        currentTranslateY = 0;
+        applyImageTransform();
+        if (zoomSliderElement) zoomSliderElement.value = currentModalScale;
+        updateCursor();
+    }
+
+    function setModalImage(imageSrc) {
+        if (modalImageElement) {
+            // Reset before loading new image to handle cases where new image is smaller/different aspect ratio
+            resetPanAndScale(); 
+            modalImageElement.src = imageSrc;
+            // Note: offsetWidth/Height might not be accurate until image fully loaded.
+            // For simplicity, pan boundaries are calculated during mousemove.
+        }
+    }
+    
+    function applyZoom(scale) {
+        currentModalScale = parseFloat(scale);
+        currentTranslateX = 0; // Reset pan on zoom change
+        currentTranslateY = 0;
+        applyImageTransform();
+        updateCursor();
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        if (modalImageElement && zoomSliderElement) {
+            zoomSliderElement.addEventListener('input', function() {
+                applyZoom(this.value);
+                didPan = false; // Slider interaction is not a pan
+            });
+
+            modalImageElement.addEventListener('click', function(e) {
+                if (didPan) { // If a pan action (significant mouse move during mousedown) just occurred
+                    didPan = false; // Reset for next interaction
+                    return; 
+                }
+
+                let currentEffectiveStepIndex = 0;
+                for(let i = clickZoomLevels.length -1; i>=0; i--){
+                    if(currentModalScale >= clickZoomLevels[i] - 0.05){
+                        currentEffectiveStepIndex = i;
+                        break;
+                    }
+                }
+                
+                let nextStepIndex;
+                if (currentModalScale >= clickZoomLevels[clickZoomLevels.length - 1] - 0.05 && currentEffectiveStepIndex === clickZoomLevels.length -1) {
+                    nextStepIndex = 0; 
+                } else {
+                    nextStepIndex = (currentEffectiveStepIndex + 1) % clickZoomLevels.length;
+                }
+                
+                const newScale = clickZoomLevels[nextStepIndex];
+                
+                applyZoom(newScale);
+                if (zoomSliderElement) zoomSliderElement.value = newScale;
+            });
+
+            modalImageElement.addEventListener('mousedown', function(e) {
+                if (currentModalScale <= 1) return;
+                e.preventDefault();
+                isPanning = true;
+                didPan = false; 
+                initialPanMouseX = e.clientX;
+                initialPanMouseY = e.clientY;
+                panStartX = e.clientX - currentTranslateX;
+                panStartY = e.clientY - currentTranslateY;
+                updateCursor();
+            });
+
+            window.addEventListener('mousemove', function(e) {
+                if (!isPanning) return;
+
+                if (!didPan && (Math.abs(e.clientX - initialPanMouseX) > 5 || Math.abs(e.clientY - initialPanMouseY) > 5)) {
+                    didPan = true; 
+                }
+
+                currentTranslateX = e.clientX - panStartX;
+                currentTranslateY = e.clientY - panStartY;
+
+                const imgWidth = modalImageElement.offsetWidth;
+                const imgHeight = modalImageElement.offsetHeight;
+                const wrapperWidth = imageZoomWrapper.clientWidth;
+                const wrapperHeight = imageZoomWrapper.clientHeight - 60;
+
+                const maxPanX = Math.max(0, (imgWidth * currentModalScale - wrapperWidth) / 2);
+                const maxPanY = Math.max(0, (imgHeight * currentModalScale - wrapperHeight) / 2);
+                
+                currentTranslateX = Math.max(-maxPanX, Math.min(maxPanX, currentTranslateX));
+                currentTranslateY = Math.max(-maxPanY, Math.min(maxPanY, currentTranslateY));
+
+                applyImageTransform();
+            });
+
+            const stopPanning = function() {
+                if (isPanning) {
+                    isPanning = false;
+                    updateCursor();
+                }
+            };
+            window.addEventListener('mouseup', stopPanning);
+            window.addEventListener('mouseleave', stopPanning); // Stop if mouse leaves window
+        }
+    });
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>X (Twitter) Scraper</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Sora:wght@600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body class="app-body">
+<main class="page-shell">
+    <div class="page-head">
+        <a class="back-link" href="/"><i class="bi bi-arrow-left"></i> Back to Home</a>
+    </div>
+
+    <section class="glass-card form-card">
+        <span class="platform-chip x"><i class="bi bi-twitter-x"></i> X / Twitter</span>
+        <h1 class="form-title">Twitter Reply Username Scanner</h1>
+        <p class="hint">Login dibutuhkan agar bot bisa mengakses reply thread tertentu.</p>
+
+        {% if error %}
+        <div class="alert alert-danger text-center">{{ error }}</div>
+        {% endif %}
+
+        <form action="{{ url_for('twitter.twitter_scrape') }}" method="POST">
+            <div class="mb-3">
+                <label for="username" class="form-label">Username</label>
+                <input type="text" id="username" name="username" class="form-control" required placeholder="contoh: akunanda">
+            </div>
+
+            <div class="mb-3">
+                <label for="email" class="form-label">Email</label>
+                <input type="email" id="email" name="email" class="form-control" required placeholder="nama@email.com">
+            </div>
+
+            <div class="mb-3">
+                <label for="password" class="form-label">Password</label>
+                <div class="input-group">
+                    <input type="password" id="password" name="password" class="form-control" required placeholder="Masukkan password akun X">
+                    <span class="input-group-text" id="togglePassword" title="Show/Hide Password">
+                        <i class="bi bi-eye" id="passwordIcon"></i>
+                    </span>
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <label for="tweet_url" class="form-label">Tweet URL</label>
+                <input type="url" id="tweet_url" name="tweet_url" class="form-control" required placeholder="https://x.com/...">
+            </div>
+
+            <div class="mb-4">
+                <label for="target_usernames" class="form-label">Target Usernames (pisahkan dengan koma)</label>
+                <input type="text" id="target_usernames" name="target_usernames" class="form-control" required placeholder="user1, user2, user3">
+            </div>
+
+            <button type="submit" class="btn btn-run">Start Scraping</button>
+        </form>
+    </section>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+    const togglePassword = document.getElementById("togglePassword");
+    const passwordInput = document.getElementById("password");
+    const passwordIcon = document.getElementById("passwordIcon");
+
+    togglePassword.addEventListener("click", function () {
+        if (passwordInput.type === "password") {
+            passwordInput.type = "text";
+            passwordIcon.classList.remove("bi-eye");
+            passwordIcon.classList.add("bi-eye-slash");
+        } else {
+            passwordInput.type = "password";
+            passwordIcon.classList.remove("bi-eye-slash");
+            passwordIcon.classList.add("bi-eye");
+        }
+    });
+</script>
+
+</body>
+</html>

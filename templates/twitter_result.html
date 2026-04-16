@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Scrape Result</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    body {
+      background-color: #f8f9fa;
+    }
+    .clickable-image {
+      cursor: pointer;
+    }
+    #modalImage {
+      transition: transform 0.2s;
+    }
+  </style>
+</head>
+<body>
+  <div class="container mt-5">
+    <h1 class="text-center mb-4">Scrape Result</h1>
+
+    {% if found_users %}
+      <div class="alert alert-info text-center">
+        <strong>Targeted Usernames:</strong> {{ found_users.keys()|join(", ") }}
+      </div>
+
+      <div class="card">
+        <div class="card-header text-center">
+          <h5>Search Results - Found Usernames</h5>
+        </div>
+        <ul class="list-group list-group-flush">
+          {% for username, found in found_users.items() %}
+            {% if found %}
+              <li class="list-group-item">
+                <strong>{{ username }}</strong> - 
+                <span class="badge bg-success">Found</span>
+
+                {% if screenshot_paths.get(username) %}
+                  <br>
+                  <!-- Display Image with click event for modal -->
+                  <img src="{{ screenshot_paths[username] }}" alt="Screenshot for {{ username }}" 
+                       class="img-fluid mt-2 clickable-image" style="max-width:400px;" 
+                       data-bs-toggle="modal" data-bs-target="#imageModal" 
+                       onclick="setModalImage('{{ screenshot_paths[username] }}')">
+                {% endif %}
+              </li>
+            {% endif %}
+          {% endfor %}
+        </ul>
+      </div>
+
+      {% if not_found_usernames %}
+        <div class="card mt-4">
+          <div class="card-header text-center">
+            <h5>Search Results - Not Found Usernames</h5>
+          </div>
+          <ul class="list-group list-group-flush">
+            {% for username in not_found_usernames %}
+              <li class="list-group-item">
+                <strong>{{ username }}</strong> - 
+                <span class="badge bg-danger">Not Found</span>
+              </li>
+            {% endfor %}
+          </ul>
+        </div>
+      {% endif %}
+    {% else %}
+      <div class="alert alert-warning text-center">
+        No search results were found for the given usernames.
+      </div>
+    {% endif %}
+
+    <div class="text-center mt-4">
+      <a href="/" class="btn btn-secondary">Back to Home</a>
+    </div>
+  </div>
+
+  <!-- Image Modal -->
+  <div class="modal fade" id="imageModal" tabindex="-1" aria-labelledby="imageModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="imageModalLabel">Image Preview</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body text-center">
+          <img id="modalImage" src="" class="img-fluid" alt="Zoomed Image">
+          <input type="range" id="zoomSlider" class="form-range mt-3" min="1" max="3" step="0.1" value="1" oninput="zoomImage(this.value)">
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Set the modal image when clicked
+    function setModalImage(imageSrc) {
+      document.getElementById('modalImage').src = imageSrc;
+      document.getElementById('zoomSlider').value = 1;
+      document.getElementById('modalImage').style.transform = 'scale(1)';
+    }
+    
+    // Zoom the image in the modal
+    function zoomImage(scale) {
+      document.getElementById('modalImage').style.transform = 'scale(' + scale + ')';
+    }
+  </script>
+  
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

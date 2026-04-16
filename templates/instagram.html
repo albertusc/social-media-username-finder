@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Instagram Scraper</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Sora:wght@600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body class="app-body">
+<main class="page-shell">
+    <div class="page-head">
+        <a class="back-link" href="/"><i class="bi bi-arrow-left"></i> Back to Home</a>
+    </div>
+
+    <section class="glass-card form-card">
+        <span class="platform-chip instagram"><i class="bi bi-instagram"></i> Instagram</span>
+        <h1 class="form-title">Instagram Comment Username Scanner</h1>
+        <p class="hint">Masukkan data login, URL post, lalu daftar username target.</p>
+
+        {% if error %}
+        <div class="alert alert-danger text-center">{{ error }}</div>
+        {% endif %}
+
+        <form action="/instagram_scrape" method="post">
+            <div class="mb-3">
+                <label class="form-label">Instagram Email/Username</label>
+                <input type="text" name="ig_email" class="form-control" required placeholder="email atau username Instagram">
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Instagram Password</label>
+                <div class="input-group">
+                    <input type="password" name="ig_password" id="password" class="form-control" required placeholder="Masukkan password">
+                    <span class="input-group-text" id="togglePassword" title="Show/Hide Password">
+                        <i class="bi bi-eye" id="passwordIcon"></i>
+                    </span>
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Instagram Post URL</label>
+                <input type="text" name="post_url" class="form-control" required placeholder="https://www.instagram.com/p/...">
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Target Usernames (pisahkan dengan koma)</label>
+                <input type="text" name="target_usernames" class="form-control" required placeholder="user1, user2, user3">
+            </div>
+
+            <div class="form-check form-switch mb-3">
+                <input class="form-check-input" type="checkbox" id="safetySwitch" name="safety_switch" checked>
+                <label class="form-check-label" for="safetySwitch">Safety Switch</label>
+            </div>
+
+            <div class="mb-4">
+                <label class="form-label">Delay per TAB (detik)</label>
+                <input type="number" step="0.1" name="tab_sleep_time" class="form-control" value="0.1" required>
+            </div>
+
+            <button type="submit" class="btn btn-run">Start Scraping</button>
+        </form>
+    </section>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+    document.getElementById('togglePassword').addEventListener('click', function () {
+        const passwordInput = document.getElementById('password');
+        const icon = document.getElementById('passwordIcon');
+
+        if (passwordInput.type === 'password') {
+            passwordInput.type = 'text';
+            icon.classList.remove('bi-eye');
+            icon.classList.add('bi-eye-slash');
+        } else {
+            passwordInput.type = 'password';
+            icon.classList.remove('bi-eye-slash');
+            icon.classList.add('bi-eye');
+        }
+    });
+
+    document.getElementById('safetySwitch').addEventListener('change', function() {
+        const tabSleepInput = document.querySelector('input[name="tab_sleep_time"]');
+        if (!this.checked) {
+            tabSleepInput.value = '0';
+            tabSleepInput.disabled = true;
+        } else {
+            tabSleepInput.value = '0.1';
+            tabSleepInput.disabled = false;
+        }
+    });
+</script>
+
+</body>
+</html>

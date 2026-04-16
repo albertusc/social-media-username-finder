@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Facebook Scraper</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Sora:wght@600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body class="app-body">
+<main class="page-shell">
+    <div class="page-head">
+        <a class="back-link" href="/"><i class="bi bi-arrow-left"></i> Back to Home</a>
+    </div>
+
+    <section class="glass-card form-card">
+        <span class="platform-chip facebook"><i class="bi bi-facebook"></i> Facebook</span>
+        <h1 class="form-title">Facebook Comment Username Scanner</h1>
+        <p class="hint">Cocok untuk cek apakah username tertentu muncul di komentar post.</p>
+
+        {% if error %}
+        <div class="alert alert-danger text-center">{{ error }}</div>
+        {% endif %}
+
+        <form action="{{ url_for('facebook.facebook_scrape') }}" method="POST">
+            <div class="mb-3">
+                <label for="post_url" class="form-label">Facebook Post URL</label>
+                <input type="text" class="form-control" id="post_url" name="post_url" placeholder="https://www.facebook.com/..." required>
+            </div>
+
+            <div class="mb-3">
+                <label for="target_usernames" class="form-label">Target Usernames (pisahkan dengan koma)</label>
+                <input type="text" class="form-control" id="target_usernames" name="target_usernames" placeholder="username1, username2" required>
+            </div>
+
+            <div class="mb-3">
+                <label for="tab_sleep_time" class="form-label">Delay per TAB (detik)</label>
+                <input type="number" class="form-control" id="tab_sleep_time" name="tab_sleep_time" step="0.1" value="0.2">
+            </div>
+
+            <div class="form-check form-switch mb-4">
+                <input class="form-check-input" type="checkbox" id="removeSafetyLimit" checked>
+                <label class="form-check-label" for="removeSafetyLimit">Safety Switch</label>
+            </div>
+
+            <button type="submit" class="btn btn-run">Start Scraping</button>
+        </form>
+    </section>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const checkbox = document.getElementById('removeSafetyLimit');
+        const tabSleepInput = document.getElementById('tab_sleep_time');
+        checkbox.checked = true;
+        tabSleepInput.disabled = false;
+
+        checkbox.addEventListener('change', function () {
+            if (this.checked) {
+                tabSleepInput.disabled = false;
+                if (tabSleepInput.value === '0') {
+                    tabSleepInput.value = '0.2';
+                }
+            } else {
+                tabSleepInput.value = '0';
+                tabSleepInput.disabled = true;
+            }
+        });
+    });
+</script>
+
+
+</body>
+</html>
