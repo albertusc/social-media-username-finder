@@ -1,4 +1,39 @@
+
 # Social Media Comment Username Scraper
+
+## UI Screenshots
+
+Below are example screenshots of the app interface for each platform:
+
+<p align="center">
+  <b>Home Page</b><br>
+  <img src="Images/Home.png" alt="Home Page" width="600">
+</p>
+
+<p align="center">
+  <b>Instagram Scraper</b><br>
+  <img src="Images/Instagram.png" alt="Instagram UI" width="600">
+</p>
+
+<p align="center">
+  <b>Facebook Scraper</b><br>
+  <img src="Images/Facebook.png" alt="Facebook UI" width="600">
+</p>
+
+<p align="center">
+  <b>YouTube Scraper</b><br>
+  <img src="Images/Youtube.png" alt="YouTube UI" width="600">
+</p>
+
+<p align="center">
+  <b>TikTok Scraper</b><br>
+  <img src="Images/TikTok.png" alt="TikTok UI" width="600">
+</p>
+
+<p align="center">
+  <b>X (Twitter) Scraper</b><br>
+  <img src="Images/X.png" alt="X Twitter UI" width="600">
+</p>
 
 A Flask web app to search for specific usernames in comments or replies across multiple platforms:
 - Instagram
